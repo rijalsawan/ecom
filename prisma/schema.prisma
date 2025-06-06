@@ -1,0 +1,57 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = "prisma+postgres://accelerate.prisma-data.net/?api_key=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcGlfa2V5IjoiMDFKV1pGUU4xQlhRMEcyN1c0Tkc1RkswRTQiLCJ0ZW5hbnRfaWQiOiI0YzQ4YmNmNDYxZjY3ZmY3NmI2ZTFjMzg2MjdhMjEwYTRlNmZiMGE1YjRhNmYyYTVhMmNmYjUzYWQ1MzA3NjJiIiwiaW50ZXJuYWxfc2VjcmV0IjoiYWY5ZjkxN2YtNjk1Ni00OGE4LTk5YWQtYjUxZTIyZDUzMmFiIn0.eSCOUZ2_3IeepTsOAF2jlgQ6CjSqt0PTTQts460BAm4"
+}
+
+model User {
+  id    Int     @id @default(autoincrement())
+  email String  @unique
+  name  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Product {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  price       Float
+  imageUrl    String?
+  categoryId  Int?
+  category    Category? @relation(fields: [categoryId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Category {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String?
+  products    Product[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Order {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  email       String
+  image       String?
+  total       Float
+  shippingAddress String?
+  billingAddress  String?
+  stripeSessionId String? @unique
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
