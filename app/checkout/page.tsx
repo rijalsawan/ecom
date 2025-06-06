@@ -1,6 +1,7 @@
 'use client'
 import { loadStripe } from '@stripe/stripe-js';
 import { JSX, useState, useEffect } from 'react';
+import { SignedIn, SignedOut } from '@clerk/nextjs';
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
@@ -52,34 +53,43 @@ export default function Page(): JSX.Element {
         return name.trim() !== '' && email.trim() !== '' && address.trim() !== '' && phone.trim() !== '';
     };
 
-    const handleCheckout = async (): Promise<void> => {
-        // 
+        const handleCheckout = async (): Promise<void> => {
         if (!validateForm()) {
             setShowAlert(true);
             setTimeout(() => setShowAlert(false), 4000);
             return;
         }
-
+    
         setIsLoading(true);
-        const res = await fetch('/api/checkout_sessions', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                name: 'Your Order',
-                description: desc,
-                amount: Math.round(total * 100),
-                currency: 'usd'
-            }),
-        });
-
-        const { id }: { id: string } = await res.json();
-        const stripe = await stripePromise;
-        if (stripe) {
-            await stripe.redirectToCheckout({ sessionId: id });
-            console.log(customerInfo);
+        
+        try {
+            const res = await fetch('/api/checkout_sessions', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: 'Your Order',
+                    description: desc,
+                    amount: Math.round(total * 100),
+                    currency: 'usd',
+                    customerInfo, // Add customer info
+                    cartItems     // Add cart items
+                }),
+            });
+    
+            if (!res.ok) {
+                throw new Error('Failed to create checkout session');
+            }
+    
+            const { id }: { id: string } = await res.json();
+            const stripe = await stripePromise;
+            
+            if (stripe) {
+                await stripe.redirectToCheckout({ sessionId: id });
+            }
+        } catch (error) {
+            console.error('Checkout error:', error);
+            setIsLoading(false);
         }
-        
-        
     };
 
     if (cartItems.length === 0) {
@@ -253,7 +263,7 @@ export default function Page(): JSX.Element {
                                 </div>
                             </div>
 
-                            <button
+                            <SignedIn><button
                                 onClick={handleCheckout}
                                 disabled={isLoading}
                                 className={`w-full py-4 px-6 rounded-xl font-semibold text-white transition-all duration-300 transform hover:scale-105 hover:shadow-lg ${
@@ -271,6 +281,15 @@ export default function Page(): JSX.Element {
                                     `Pay $${total.toFixed(2)}`
                                 )}
                             </button>
+                            </SignedIn>
+                            <SignedOut>
+                            <button
+                                onClick={() => alert('Please sign in to proceed with payment.')}
+                                className="w-full py-4 px-6 rounded-xl font-semibold text-white bg-gray-400 cursor-not-allowed transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
+                            >
+                                Sign in to Pay
+                            </button>
+                            </SignedOut>
 
                             <div className="mt-4 text-center">
                                 <div className="flex items-center justify-center space-x-2 text-gray-500 text-sm">

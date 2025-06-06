@@ -19,29 +19,19 @@ import {
   Trash2,
 } from "lucide-react";
 
+interface CartItem {
+  id: number;
+  name: string;
+  price: number;
+  quantity: number;
+  image: string;
+}
+
 const Navbar = () => {
     const [isOpen, setIsOpen] = useState(false);
       const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-    
-      // Mock cart items with state management
-      const [cartItems, setCartItems] = useState([
-        {
-          id: 1,
-          name: "Wireless Headphones",
-          price: 99.99,
-          quantity: 1,
-          image:
-            "https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcSPSyJjX0hr4oUTVJKY-aYZoXkfZFC-OIFOodNErPYR1j_imeqJoAYdIQHCjGxRrS7q3LxCoIaXBa8YzUVQfg_i8WMKQUJIzaX1v8BSIuyMKzzGV939SolDWMDB-cChw7sEDzQEK-E&usqp=CAc",
-        },
-        {
-          id: 2,
-          name: "Smart Watch",
-          price: 199.99,
-          quantity: 1,
-          image:
-            "https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcSPSyJjX0hr4oUTVJKY-aYZoXkfZFC-OIFOodNErPYR1j_imeqJoAYdIQHCjGxRrS7q3LxCoIaXBa8YzUVQfg_i8WMKQUJIzaX1v8BSIuyMKzzGV939SolDWMDB-cChw7sEDzQEK-E&usqp=CAc",
-        },
-      ]);
+
+      const [cartItems, setCartItems] = useState<CartItem[]>([]);
     
       const total = cartItems.reduce(
         (sum, item) => sum + item.price * item.quantity,
