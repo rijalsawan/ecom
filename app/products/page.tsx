@@ -153,19 +153,19 @@ const Page = () =>  {
         visible: {
             opacity: 1,
             transition: {
-                staggerChildren: 0.05,
+                staggerChildren: 0.08,
                 ease: "easeOut"
             }
         }
     }
 
     const itemVariants = {
-        hidden: { y: 40, opacity: 0 },
+        hidden: { y: 20, opacity: 0 },
         visible: {
             y: 0,
             opacity: 1,
             transition: {
-                duration: 0.8,
+                duration: 0.6,
                 ease: [0.25, 0.46, 0.45, 0.94]
             }
         }
@@ -173,53 +173,39 @@ const Page = () =>  {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+            <div className="min-h-screen bg-white flex items-center justify-center">
                 <motion.div
                     animate={{ rotate: 360 }}
                     transition={{ 
-                        duration: 1.5, 
+                        duration: 1, 
                         repeat: Infinity, 
                         ease: "linear" 
                     }}
-                    className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full"
+                    className="w-8 h-8 border-2 border-gray-900 border-t-transparent rounded-full"
                 />
             </div>
         )
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-            <motion.div
-                initial={{ y: -50, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ 
-                    duration: 0.8,
-                    ease: [0.25, 0.46, 0.45, 0.94]
-                }}
-                className="bg-white shadow-lg"
-            >
-            </motion.div>
+        <div className="">
 
-            <div className="max-w-7xl mx-auto px-4 py-8">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
                 {/* Category Filter */}
                 <motion.div
                     initial={{ y: 20, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
-                    transition={{ 
-                        duration: 0.8, 
-                        delay: 0.2,
-                        ease: [0.25, 0.46, 0.45, 0.94]
-                    }}
-                    className="flex flex-wrap justify-center gap-4 mb-12"
+                    transition={{ duration: 0.6, delay: 0.1 }}
+                    className="flex flex-wrap justify-center gap-2 sm:gap-3 mb-12 lg:mb-16"
                 >
                     {categories.map((category) => (
                         <button
                             key={category}
                             onClick={() => setSelectedCategory(category)}
-                            className={`px-6 py-3 rounded-full font-medium transition-all duration-500 ease-out ${
+                            className={`px-4 sm:px-6 py-2 sm:py-2.5 text-sm font-medium transition-all duration-300 border ${
                                 selectedCategory === category
-                                    ? 'bg-blue-500 text-white shadow-lg transform scale-105'
-                                    : 'bg-white text-gray-700 hover:bg-gray-100 shadow-md hover:shadow-lg'
+                                    ? 'bg-gray-900 text-white border-gray-900'
+                                    : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300 hover:text-gray-900'
                             }`}
                         >
                             {category}
@@ -232,68 +218,60 @@ const Page = () =>  {
                     variants={containerVariants}
                     initial="hidden"
                     animate="visible"
-                    className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
+                    className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 lg:gap-8"
                 >
                     {filteredProducts.map((product) => (
                         <motion.div
                             key={product.id}
                             variants={itemVariants}
-                            whileHover={{ 
-                                y: -8, 
-                                scale: 1.03,
-                                transition: { duration: 0.4, ease: "easeOut" }
-                            }}
-                            className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-500 ease-out"
+                            whileHover={{ y: -4 }}
+                            className="group bg-white border border-gray-100 hover:border-gray-200 transition-all duration-300"
                         >
-                            <div className="relative overflow-hidden">
+                            {/* Product Image */}
+                            <div className="relative aspect-square overflow-hidden bg-gray-50">
                                 <img
                                     src={product.image}
                                     alt={product.name}
-                                    className="w-full h-48 object-cover transition-transform duration-700 ease-out hover:scale-110"
+                                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                                 />
-                                <div className="absolute top-3 right-3 bg-white rounded-full px-2 py-1 shadow-lg">
-                                    <span className="text-yellow-500">★</span>
-                                    <span className="text-xs font-medium ml-1">{product.rating}</span>
-                                </div>
+                                
+                                {/* Cart Badge */}
                                 {isInCart(product.id) && (
-                                    <div className="absolute top-3 left-3 bg-green-500 text-white rounded-full px-2 py-1 text-xs">
-                                        In Cart: {getCartItemQuantity(product.id)}
+                                    <div className="absolute top-3 left-3 bg-gray-900 text-white text-xs px-2 py-1 font-medium">
+                                        {getCartItemQuantity(product.id)}
                                     </div>
                                 )}
+                                
+                                
                             </div>
 
-                            <div className="p-4">
+                            {/* Product Info */}
+                            <div className="p-4 lg:p-6">
                                 <div className="flex justify-between items-start mb-2">
-                                    <h3 className="text-lg font-semibold text-gray-800 leading-tight">
+                                    <h3 className="font-medium text-gray-900 text-sm lg:text-base leading-tight pr-2">
                                         {product.name}
                                     </h3>
-                                    <span className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded-full">
+                                    <span className="text-xs text-gray-500 uppercase tracking-wide whitespace-nowrap">
                                         {product.category}
                                     </span>
                                 </div>
                                 
-                                <p className="text-gray-600 mb-3 text-xs leading-relaxed">
+                                <p className="text-gray-600 text-xs lg:text-sm mb-4 leading-relaxed line-clamp-2">
                                     {product.description}
                                 </p>
 
                                 <div className="flex justify-between items-center">
-                                    <span className="text-xl font-bold text-blue-600">
+                                    <span className="text-lg lg:text-xl font-light text-gray-900">
                                         ${product.price}
                                     </span>
                                     <motion.button
-                                        whileHover={{ 
-                                            scale: 1.05,
-                                            transition: { duration: 0.3, ease: "easeOut" }
-                                        }}
-                                        whileTap={{ 
-                                            scale: 0.95,
-                                            transition: { duration: 0.1 }
-                                        }}
+                                        whileHover={{ scale: 1.02 }}
+                                        whileTap={{ scale: 0.98 }}
                                         onClick={() => addToCart(product)}
-                                        className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ease-out shadow-lg hover:shadow-xl ${
+                                        className={`px-4 py-2 text-sm font-medium transition-all duration-300 ${
                                             isInCart(product.id)
-                                                ? 'bg-green-500 hover:bg-green-600 text-white'
-                                                : 'bg-blue-500 hover:bg-blue-600 text-white'
+                                                ? 'bg-gray-900 text-white hover:bg-gray-800'
+                                                : 'bg-white text-gray-900 border border-gray-900 hover:bg-gray-900 hover:text-white'
                                         }`}
                                     >
                                         {isInCart(product.id) ? 'Add More' : 'Add to Cart'}
@@ -304,14 +282,15 @@ const Page = () =>  {
                     ))}
                 </motion.div>
 
+                {/* Empty State */}
                 {filteredProducts.length === 0 && (
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        transition={{ duration: 0.8, ease: "easeOut" }}
-                        className="text-center py-16"
+                        transition={{ duration: 0.6 }}
+                        className="text-center py-16 lg:py-24"
                     >
-                        <p className="text-gray-500 text-lg">No products found in this category.</p>
+                        <p className="text-gray-500 text-lg font-light">No products found in this category.</p>
                     </motion.div>
                 )}
             </div>

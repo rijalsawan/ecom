@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Edit2, Trash2, Save, X, Package, AlertCircle, Star } from 'lucide-react';
+import { Edit2, Trash2, Save, X, Package, AlertCircle, Plus, Search } from 'lucide-react';
 
 interface Product {
     id: string;
@@ -23,11 +23,20 @@ const AllProductsPage = () => {
     const [editingProduct, setEditingProduct] = useState<string | null>(null);
     const [editForm, setEditForm] = useState<Partial<Product>>({});
     const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
-    const [hoveredCard, setHoveredCard] = useState<string | null>(null);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
 
     useEffect(() => {
         fetchProducts();
     }, []);
+
+    useEffect(() => {
+        const filtered = products.filter(product =>
+            product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (product.description?.toLowerCase().includes(searchTerm.toLowerCase()))
+        );
+        setFilteredProducts(filtered);
+    }, [products, searchTerm]);
 
     const fetchProducts = async () => {
         try {
@@ -70,7 +79,6 @@ const AllProductsPage = () => {
     };
 
     const handleDelete = async (productId: string) => {
-        setLoading(true);
         try {
             const response = await fetch(`/api/deleteProduct?id=${productId}`, {
                 method: 'DELETE'
@@ -83,395 +91,253 @@ const AllProductsPage = () => {
         } catch (error) {
             console.error('Error deleting product:', error);
         }
-        setLoading(false);
-    };
-
-    const containerVariants = {
-        hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: {
-                staggerChildren: 0.08,
-                delayChildren: 0.1
-            }
-        }
-    };
-
-    const cardVariants = {
-        hidden: { opacity: 0, y: 50, scale: 0.9 },
-        visible: { 
-            opacity: 1, 
-            y: 0, 
-            scale: 1,
-            transition: {
-                type: "spring",
-                stiffness: 100,
-                damping: 15
-            }
-        },
-        exit: { 
-            opacity: 0, 
-            scale: 0.8,
-            y: -20,
-            transition: {
-                duration: 0.2
-            }
-        }
-    };
-
-    const floatingVariants = {
-        animate: {
-            y: [0, -10, 0],
-            transition: {
-                duration: 2,
-                repeat: Infinity,
-                ease: "easeInOut"
-            }
-        }
     };
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center">
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.5 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="text-center"
-                >
-                    <motion.div
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                        className="w-16 h-16 border-4 border-gradient-to-r from-indigo-500 to-purple-500 border-t-transparent rounded-full mx-auto mb-4"
-                    />
-                    <motion.p
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.5 }}
-                        className="text-xl font-medium text-gray-600"
-                    >
-                        Loading products...
-                    </motion.p>
-                </motion.div>
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="w-8 h-8 border-2 border-gray-900 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+                    <p className="text-gray-600">Loading products...</p>
+                </div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+        <div className="min-h-screen bg-gray-50">
             {/* Header */}
-            <motion.div
-                initial={{ opacity: 0, y: -50 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, ease: "easeOut" }}
-                className="bg-white/80 backdrop-blur-lg border-b border-white/20 sticky top-0 z-40"
-            >
-                <div className="max-w-7xl mx-auto px-6 py-6">
-                    <div className="flex items-center gap-4">
-                        <motion.div
-                            variants={floatingVariants}
-                            animate="animate"
-                            className="p-3 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl shadow-lg"
-                        >
-                            <Package className="w-8 h-8 text-white" />
-                        </motion.div>
-                        <div>
-                            <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                                Product Management
-                            </h1>
-                            <p className="text-gray-600 mt-1">Manage your products with style</p>
+            <div className="bg-white border-b border-gray-200">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="py-6">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-gray-900 rounded-lg">
+                                    <Package className="w-6 h-6 text-white" />
+                                </div>
+                                <div>
+                                    <h1 className="text-2xl font-semibold text-gray-900">Products</h1>
+                                    <p className="text-sm text-gray-500">{filteredProducts.length} total products</p>
+                                </div>
+                            </div>
+                            
+                            {/* Search and Actions */}
+                            <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
+                                <div className="relative">
+                                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                    <input
+                                        type="text"
+                                        placeholder="Search products..."
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent outline-none w-full sm:w-64"
+                                    />
+                                </div>
+                                <button className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors">
+                                    <Plus className="w-4 h-4" />
+                                    <span className="hidden sm:inline">Add Product</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </motion.div>
+            </div>
 
-            <div className="max-w-7xl mx-auto p-6">
-                <motion.div
-                    variants={containerVariants}
-                    initial="hidden"
-                    animate="visible"
-                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 mt-8"
-                >
-                    <AnimatePresence mode="popLayout">
-                        {products.map((product) => (
-                            <motion.div
-                                key={product.id}
-                                variants={cardVariants}
-                                layout
-                                onHoverStart={() => setHoveredCard(product.id)}
-                                onHoverEnd={() => setHoveredCard(null)}
-                                className="group relative"
-                            >
+            {/* Content */}
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                {filteredProducts.length === 0 ? (
+                    <div className="text-center py-16">
+                        <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
+                            <Package className="w-8 h-8 text-gray-400" />
+                        </div>
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">No products found</h3>
+                        <p className="text-gray-500">
+                            {searchTerm ? 'Try adjusting your search terms' : 'Get started by adding your first product'}
+                        </p>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                        <AnimatePresence mode="popLayout">
+                            {filteredProducts.map((product) => (
                                 <motion.div
-                                    className="bg-white/70 backdrop-blur-sm rounded-3xl overflow-hidden shadow-xl border border-white/20"
-                                    whileHover={{ 
-                                        y: -8,
-                                        boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.15)"
-                                    }}
-                                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                                    key={product.id}
+                                    layout
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -20 }}
+                                    className="group bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-200"
                                 >
                                     {editingProduct === product.id ? (
-                                        <motion.div
-                                            initial={{ opacity: 0, scale: 0.95 }}
-                                            animate={{ opacity: 1, scale: 1 }}
-                                            className="p-6 space-y-6"
-                                        >
-                                            <div className="text-center mb-4">
-                                                <h3 className="text-lg font-semibold text-gray-800">Edit Product</h3>
-                                            </div>
-                                            
+                                        <div className="p-6">
                                             <div className="space-y-4">
-                                                <motion.input
-                                                    whileFocus={{ scale: 1.02 }}
+                                                <input
                                                     type="text"
                                                     value={editForm.name || ''}
                                                     onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                                                    className="w-full p-4 bg-white/50 border border-indigo-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 placeholder-gray-400"
+                                                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent outline-none"
                                                     placeholder="Product name"
                                                 />
                                                 
-                                                <motion.textarea
-                                                    whileFocus={{ scale: 1.02 }}
+                                                <textarea
                                                     value={editForm.description || ''}
                                                     onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
-                                                    className="w-full p-4 bg-white/50 border border-indigo-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none transition-all duration-200 placeholder-gray-400"
+                                                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent outline-none resize-none"
                                                     rows={3}
                                                     placeholder="Product description"
                                                 />
                                                 
-                                                <motion.input
-                                                    whileFocus={{ scale: 1.02 }}
+                                                <input
                                                     type="number"
                                                     value={editForm.price || ''}
                                                     onChange={(e) => setEditForm({ ...editForm, price: parseFloat(e.target.value) })}
-                                                    className="w-full p-4 bg-white/50 border border-indigo-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 placeholder-gray-400"
+                                                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent outline-none"
                                                     placeholder="Price"
                                                 />
                                                 
-                                                <motion.div 
-                                                    whileHover={{ scale: 1.02 }}
-                                                    className="flex items-center gap-3 p-3 bg-white/30 rounded-xl"
-                                                >
+                                                <label className="flex items-center gap-2">
                                                     <input
                                                         type="checkbox"
                                                         checked={editForm.active || false}
                                                         onChange={(e) => setEditForm({ ...editForm, active: e.target.checked })}
-                                                        className="w-5 h-5 text-indigo-600 rounded focus:ring-indigo-500"
+                                                        className="rounded border-gray-300 text-gray-900 focus:ring-gray-900"
                                                     />
-                                                    <span className="font-medium text-gray-700">Active Product</span>
-                                                </motion.div>
+                                                    <span className="text-sm text-gray-700">Active</span>
+                                                </label>
                                             </div>
                                             
-                                            <div className="flex gap-3 pt-4">
-                                                <motion.button
-                                                    whileHover={{ scale: 1.05 }}
-                                                    whileTap={{ scale: 0.95 }}
+                                            <div className="flex gap-2 mt-6">
+                                                <button
                                                     onClick={() => handleSave(product.id)}
-                                                    className="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 text-white p-3 rounded-2xl flex items-center justify-center gap-2 font-medium shadow-lg hover:shadow-xl transition-all duration-200"
+                                                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors text-sm"
                                                 >
-                                                    <Save className="w-5 h-5" />
-                                                    Save Changes
-                                                </motion.button>
-                                                <motion.button
-                                                    whileHover={{ scale: 1.05 }}
-                                                    whileTap={{ scale: 0.95 }}
+                                                    <Save className="w-4 h-4" />
+                                                    Save
+                                                </button>
+                                                <button
                                                     onClick={() => {
                                                         setEditingProduct(null);
                                                         setEditForm({});
                                                     }}
-                                                    className="flex-1 bg-gradient-to-r from-gray-400 to-gray-500 text-white p-3 rounded-2xl flex items-center justify-center gap-2 font-medium shadow-lg hover:shadow-xl transition-all duration-200"
+                                                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm"
                                                 >
-                                                    <X className="w-5 h-5" />
+                                                    <X className="w-4 h-4" />
                                                     Cancel
-                                                </motion.button>
+                                                </button>
                                             </div>
-                                        </motion.div>
+                                        </div>
                                     ) : (
                                         <>
-                                            {/* Product Image */}
-                                            <div className="relative h-48 bg-gradient-to-br from-indigo-100 to-purple-100 overflow-hidden">
+                                            {/* Image */}
+                                            <div className="relative aspect-square bg-gray-100 overflow-hidden">
                                                 {product.imageUrl || (product.images && product.images[0]) ? (
-                                                    <motion.img
+                                                    <img
                                                         src={product.imageUrl || product.images![0]}
                                                         alt={product.name}
-                                                        className="w-full h-full object-cover"
-                                                        whileHover={{ scale: 1.1 }}
-                                                        transition={{ duration: 0.3 }}
+                                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                                     />
                                                 ) : (
-                                                    <motion.div 
-                                                        className="w-full h-full flex items-center justify-center"
-                                                        whileHover={{ scale: 1.05 }}
-                                                    >
-                                                        <Package className="w-16 h-16 text-indigo-300" />
-                                                    </motion.div>
+                                                    <div className="w-full h-full flex items-center justify-center">
+                                                        <Package className="w-12 h-12 text-gray-300" />
+                                                    </div>
                                                 )}
                                                 
-                                                {/* Status Badge */}
-                                                
+                                                {/* Status */}
+                                                {product.active !== undefined && (
+                                                    <div className="absolute top-3 right-3">
+                                                        <span className={`inline-block w-2 h-2 rounded-full ${
+                                                            product.active ? 'bg-green-400' : 'bg-gray-400'
+                                                        }`} />
+                                                    </div>
+                                                )}
 
-                                                {/* Hover Actions */}
-                                                <AnimatePresence>
-                                                    {hoveredCard === product.id && (
-                                                        <motion.div
-                                                            initial={{ opacity: 0 }}
-                                                            animate={{ opacity: 1 }}
-                                                            exit={{ opacity: 0 }}
-                                                            className="absolute inset-0 bg-black/40 flex items-center justify-center gap-3"
-                                                        >
-                                                            <motion.button
-                                                                whileHover={{ scale: 1.1, rotate: 5 }}
-                                                                whileTap={{ scale: 0.9 }}
-                                                                onClick={() => handleEdit(product)}
-                                                                className="p-3 bg-white/90 backdrop-blur-sm rounded-full text-indigo-600 shadow-lg hover:bg-white transition-all duration-200"
-                                                            >
-                                                                <Edit2 className="w-5 h-5" />
-                                                            </motion.button>
-                                                            <motion.button
-                                                                whileHover={{ scale: 1.1, rotate: -5 }}
-                                                                whileTap={{ scale: 0.9 }}
-                                                                onClick={() => setDeleteConfirm(product.id)}
-                                                                className="p-3 bg-white/90 backdrop-blur-sm rounded-full text-red-600 shadow-lg hover:bg-white transition-all duration-200"
-                                                            >
-                                                                <Trash2 className="w-5 h-5" />
-                                                            </motion.button>
-                                                        </motion.div>
-                                                    )}
-                                                </AnimatePresence>
+                                                {/* Actions */}
+                                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-2">
+                                                    <button
+                                                        onClick={() => handleEdit(product)}
+                                                        className="p-2 bg-white rounded-lg hover:bg-gray-50 transition-colors"
+                                                    >
+                                                        <Edit2 className="w-4 h-4 text-gray-700" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => setDeleteConfirm(product.id)}
+                                                        className="p-2 bg-white rounded-lg hover:bg-gray-50 transition-colors"
+                                                    >
+                                                        <Trash2 className="w-4 h-4 text-red-600" />
+                                                    </button>
+                                                </div>
                                             </div>
 
-                                            {/* Product Details */}
-                                            <div className="p-6">
-                                                <motion.h3 
-                                                    className="text-xl font-bold text-gray-900 mb-2 line-clamp-1"
-                                                    whileHover={{ scale: 1.02 }}
-                                                >
+                                            {/* Content */}
+                                            <div className="p-4">
+                                                <h3 className="font-medium text-gray-900 mb-1 line-clamp-1">
                                                     {product.name}
-                                                </motion.h3>
-
-                                                <p className="text-gray-600 text-sm mb-4 line-clamp-2 leading-relaxed">
-                                                    {product.description || 'No description available'}
+                                                </h3>
+                                                <p className="text-sm text-gray-500 mb-3 line-clamp-2">
+                                                    {product.description || 'No description'}
                                                 </p>
-
-                                                <div className="flex justify-between items-center mb-4">
-                                                    <motion.span 
-                                                        className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent"
-                                                        whileHover={{ scale: 1.05 }}
-                                                    >
+                                                
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-lg font-semibold text-gray-900">
                                                         ${product.price?.toFixed(2) || '0.00'}
-                                                    </motion.span>
-                                                    
-                                                    <motion.div 
-                                                        className="flex items-center gap-1"
-                                                        whileHover={{ scale: 1.1 }}
-                                                    >
-                                                        {[...Array(5)].map((_, i) => (
-                                                            <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
-                                                        ))}
-                                                    </motion.div>
-                                                </div>
-
-                                                {product.category && (
-                                                    <motion.div 
-                                                        className="flex items-center gap-2 p-3 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl border border-indigo-100"
-                                                        whileHover={{ scale: 1.02 }}
-                                                    >
-                                                        <div className="w-2 h-2 bg-indigo-500 rounded-full"></div>
-                                                        <span className="text-sm font-medium text-indigo-700">
+                                                    </span>
+                                                    {product.category && (
+                                                        <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-800">
                                                             {product.category.name}
                                                         </span>
-                                                    </motion.div>
-                                                )}
+                                                    )}
+                                                </div>
                                             </div>
                                         </>
                                     )}
                                 </motion.div>
-                            </motion.div>
-                        ))}
-                    </AnimatePresence>
-                </motion.div>
-
-                {products.length === 0 && (
-                    <motion.div
-                        initial={{ opacity: 0, y: 50 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.3 }}
-                        className="text-center py-20"
-                    >
-                        <motion.div
-                            variants={floatingVariants}
-                            animate="animate"
-                            className="inline-block p-6 bg-gradient-to-r from-indigo-100 to-purple-100 rounded-full mb-6"
-                        >
-                            <Package className="w-20 h-20 text-indigo-400" />
-                        </motion.div>
-                        <h3 className="text-3xl font-bold text-gray-800 mb-4">No products found</h3>
-                        <p className="text-gray-600 text-lg">Start building your amazing product catalog!</p>
-                    </motion.div>
+                            ))}
+                        </AnimatePresence>
+                    </div>
                 )}
             </div>
 
-            {/* Enhanced Delete Confirmation Modal */}
+            {/* Delete Modal */}
             <AnimatePresence>
                 {deleteConfirm && (
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+                        className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
                         onClick={() => setDeleteConfirm(null)}
                     >
                         <motion.div
-                            initial={{ scale: 0.8, opacity: 0, y: 50 }}
-                            animate={{ scale: 1, opacity: 1, y: 0 }}
-                            exit={{ scale: 0.8, opacity: 0, y: 50 }}
-                            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                            initial={{ scale: 0.95, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.95, opacity: 0 }}
                             onClick={(e) => e.stopPropagation()}
-                            className="bg-white/90 backdrop-blur-lg rounded-3xl p-8 max-w-md w-full shadow-2xl border border-white/20"
+                            className="bg-white rounded-xl p-6 max-w-sm w-full shadow-2xl"
                         >
-                            <motion.div 
-                                className="flex items-center gap-4 mb-6"
-                                initial={{ x: -20, opacity: 0 }}
-                                animate={{ x: 0, opacity: 1 }}
-                                transition={{ delay: 0.1 }}
-                            >
-                                <div className="p-3 bg-red-100 rounded-full">
-                                    <AlertCircle className="w-8 h-8 text-red-500" />
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="p-2 bg-red-100 rounded-lg">
+                                    <AlertCircle className="w-5 h-5 text-red-600" />
                                 </div>
-                                <h3 className="text-2xl font-bold text-gray-900">Confirm Delete</h3>
-                            </motion.div>
+                                <h3 className="text-lg font-semibold text-gray-900">Delete Product</h3>
+                            </div>
                             
-                            <motion.p 
-                                className="text-gray-600 mb-8 leading-relaxed"
-                                initial={{ y: 20, opacity: 0 }}
-                                animate={{ y: 0, opacity: 1 }}
-                                transition={{ delay: 0.2 }}
-                            >
-                                Are you sure you want to delete this product? This action cannot be undone and will permanently remove the product from your catalog.
-                            </motion.p>
+                            <p className="text-gray-600 mb-6">
+                                Are you sure you want to delete this product? This action cannot be undone.
+                            </p>
                             
-                            <motion.div 
-                                className="flex gap-4"
-                                initial={{ y: 20, opacity: 0 }}
-                                animate={{ y: 0, opacity: 1 }}
-                                transition={{ delay: 0.3 }}
-                            >
-                                <motion.button
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
+                            <div className="flex gap-3">
+                                <button
                                     onClick={() => handleDelete(deleteConfirm)}
-                                    className="flex-1 bg-gradient-to-r from-red-500 to-red-600 text-white py-4 px-6 rounded-2xl font-medium shadow-lg hover:shadow-xl transition-all duration-200"
+                                    className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
                                 >
-                                    Delete Product
-                                </motion.button>
-                                <motion.button
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
+                                    Delete
+                                </button>
+                                <button
                                     onClick={() => setDeleteConfirm(null)}
-                                    className="flex-1 bg-gradient-to-r from-gray-300 to-gray-400 text-gray-700 py-4 px-6 rounded-2xl font-medium shadow-lg hover:shadow-xl transition-all duration-200"
+                                    className="flex-1 px-4 py-2 border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
                                 >
                                     Cancel
-                                </motion.button>
-                            </motion.div>
+                                </button>
+                            </div>
                         </motion.div>
                     </motion.div>
                 )}

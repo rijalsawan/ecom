@@ -29,331 +29,293 @@ interface CartItem {
 
 const Navbar = () => {
     const [isOpen, setIsOpen] = useState(false);
-      const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [cartItems, setCartItems] = useState<CartItem[]>([]);
+    
+    const total = cartItems.reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0
+    );
+  
+    const updateQuantity = (id: number, newQuantity: number) => {
+      if (newQuantity <= 0) return;
+      setCartItems((items) => {
+        const updatedItems = items.map((item) =>
+          item.id === id ? { ...item, quantity: newQuantity } : item
+        );
+        localStorage.setItem('cart', JSON.stringify(updatedItems));
+        window.dispatchEvent(new CustomEvent('cartUpdated'));
+        return updatedItems;
+      });
+    };
+  
+    const removeItem = (id: number) => {
+      setCartItems((items) => {
+        const updatedItems = items.filter((item) => item.id !== id);
+        localStorage.setItem('cart', JSON.stringify(updatedItems));
+        window.dispatchEvent(new CustomEvent('cartUpdated'));
+        return updatedItems;
+      });
+    };
 
-      const [cartItems, setCartItems] = useState<CartItem[]>([]);
-    
-      const total = cartItems.reduce(
-        (sum, item) => sum + item.price * item.quantity,
-        0
-      );
-    
-      // Cart item functions
-      const updateQuantity = (id: number, newQuantity: number) => {
-        if (newQuantity <= 0) return;
-        setCartItems((items) => {
-          const updatedItems = items.map((item) =>
-            item.id === id ? { ...item, quantity: newQuantity } : item
-          );
-          // Sync with localStorage
-          localStorage.setItem('cart', JSON.stringify(updatedItems));
-          // Dispatch custom event to notify other components
-          window.dispatchEvent(new CustomEvent('cartUpdated'));
-          return updatedItems;
-        });
-      };
-    
-      const removeItem = (id: number) => {
-        setCartItems((items) => {
-          const updatedItems = items.filter((item) => item.id !== id);
-          // Sync with localStorage
-          localStorage.setItem('cart', JSON.stringify(updatedItems));
-          // Dispatch custom event to notify other components
-          window.dispatchEvent(new CustomEvent('cartUpdated'));
-          return updatedItems;
-        });
-      };
-
-      const checkout = () => {
-        setCartItems([]);
-      };
-    
+    const checkout = () => {
+      setIsSidebarOpen(false);
+      setCartItems([]);
+    };
+  
+    React.useEffect(() => {
+      const storedCart = localStorage.getItem('cart');
+      if (storedCart) {
+        setCartItems(JSON.parse(storedCart));
+      }
       
-      React.useEffect(() => {
-        const storedCart = localStorage.getItem('cart');
-        if (storedCart) {
-          setCartItems(JSON.parse(storedCart));
+      const handleStorageChange = (e: StorageEvent) => {
+        if (e.key === 'cart' && e.newValue) {
+          setCartItems(JSON.parse(e.newValue));
         }
-        
-        // Listen for storage changes
-        const handleStorageChange = (e: StorageEvent) => {
-          if (e.key === 'cart' && e.newValue) {
-            setCartItems(JSON.parse(e.newValue));
-          }
-        };
-    
-        window.addEventListener('storage', handleStorageChange);
-        
-        return () => {
-          window.removeEventListener('storage', handleStorageChange);
-        };
-      }, []);
+      };
+
+      window.addEventListener('storage', handleStorageChange);
+      
+      return () => {
+        window.removeEventListener('storage', handleStorageChange);
+      };
+    }, []);
+
   return (
     <ClerkProvider>
-        <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md bg-white/10 border-b border-white/20 shadow-lg">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between h-16">
-              {/* Logo */}
-              <div className="flex-shrink-0">
-                <Link
-                  href="/"
-                  className="text-2xl font-bold text-gray-800 hover:text-gray-600 transition-colors"
-                >
-                  EcomStore
-                </Link>
-              </div>
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-black shadow-2xl backdrop-blur-3xl border-b border-white/5">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16 lg:h-20">
+            {/* Logo */}
+            <div className="flex-shrink-0">
+              <Link
+                href="/"
+                className="text-xl lg:text-2xl font-thin tracking-[0.2em] text-white hover:text-cyan-300 transition-all duration-500 relative"
+              >
+                <span className="relative z-10">ECOM</span>
+                <span className="absolute -bottom-1 left-0 w-0 h-px bg-gradient-to-r from-cyan-400 to-blue-500 transition-all duration-500 hover:w-full"></span>
+              </Link>
+            </div>
 
-              {/* Desktop Navigation */}
-              <div className="hidden md:block">
-                <div className="ml-10 flex items-baseline space-x-8">
+            {/* Desktop Navigation */}
+            <div className="hidden lg:block">
+              <div className="flex items-center space-x-12">
+                {['Home', 'Products', 'Categories', 'About', 'Contact'].map((item) => (
                   <Link
-                    href="/"
-                    className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                    key={item}
+                    href={item === 'Home' ? '/' : `/${item.toLowerCase()}`}
+                    className="text-sm font-light text-white/70 hover:text-white transition-all duration-300 relative group uppercase tracking-wider"
                   >
-                    Home
+                    {item}
+                    <span className="absolute -bottom-2 left-1/2 w-0 h-px bg-gradient-to-r from-cyan-400 to-blue-500 transition-all duration-300 group-hover:w-full group-hover:left-0"></span>
                   </Link>
-                  <Link
-                    href="/products"
-                    className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium transition-colors"
-                  >
-                    Products
-                  </Link>
-                  <Link
-                    href="/categories"
-                    className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium transition-colors"
-                  >
-                    Categories
-                  </Link>
-                  <Link
-                    href="/about"
-                    className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium transition-colors"
-                  >
-                    About
-                  </Link>
-                  <Link
-                    href="/contact"
-                    className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium transition-colors"
-                  >
-                    Contact
-                  </Link>
+                ))}
+              </div>
+            </div>
+
+            {/* Auth & Icons */}
+            <div className="flex items-center space-x-4">
+              <SignedOut>
+                <div className="hidden sm:flex items-center space-x-4">
+                  <SignInButton>
+                    <button className="text-sm font-light text-white/70 hover:text-white transition-all duration-300 uppercase tracking-wider">
+                      Access
+                    </button>
+                  </SignInButton>
+                  <SignUpButton>
+                    <button className="bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-6 py-2 text-sm font-light rounded-full hover:from-cyan-400 hover:to-blue-500 transition-all duration-300 uppercase tracking-wider shadow-lg hover:shadow-cyan-500/25">
+                      Join
+                    </button>
+                  </SignUpButton>
                 </div>
-              </div>
-              <div className="space-x-3 flex items-center">
-                <SignedOut>
-                  <SignInButton />
-                  <SignUpButton />
-                </SignedOut>
-              </div>
-              
+              </SignedOut>
+              <SignedIn>
+                <div className="relative">
+                  <UserButton />
+                </div>
+              </SignedIn>
 
               {/* Desktop Icons */}
-              <div className="hidden md:flex items-center space-x-4">
-                <button className="p-2 rounded-full bg-white/20 hover:bg-white/30 hover:scale-110 transition-all duration-300 ease-in-out transform">
-                  <Search className="h-5 w-5 text-gray-700 transition-transform duration-300 hover:rotate-12" />
-                </button>
-                <button className="p-2 rounded-full bg-white/20 hover:bg-white/30 hover:scale-110 transition-all duration-300 ease-in-out transform">
-                  <SignedIn>
-              <UserButton />
-            </SignedIn>
+              <div className="hidden md:flex items-center space-x-2">
+                <button className="p-3 rounded-full hover:bg-white/5 transition-all duration-300 group border border-white/10 hover:border-cyan-500/50">
+                  <Search className="h-4 w-4 text-white/60 group-hover:text-cyan-400 transition-all duration-300" />
                 </button>
                 <button
                   onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                  className="p-2 rounded-full bg-white/20 hover:bg-white/30 hover:scale-110 transition-all duration-300 ease-in-out transform relative"
+                  className="p-3 rounded-full hover:bg-white/5 transition-all duration-300 group relative border border-white/10 hover:border-cyan-500/50"
                 >
-                  <ShoppingBag className="h-5 w-5 text-gray-700 transition-transform duration-300 hover:rotate-12" />
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center transition-all duration-300 hover:scale-110">
-                    {cartItems.reduce((sum, item) => sum + item.quantity, 0)}
-                  </span>
+                  <ShoppingBag className="h-4 w-4 text-white/60 group-hover:text-cyan-400 transition-all duration-300" />
+                  {cartItems.length > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-light animate-pulse">
+                      {cartItems.reduce((sum, item) => sum + item.quantity, 0)}
+                    </span>
+                  )}
                 </button>
               </div>
 
+              {/* Mobile cart icon */}
+              <button
+                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                className="md:hidden p-3 rounded-full hover:bg-white/5 transition-all duration-300 group relative border border-white/10"
+              >
+                <ShoppingBag className="h-4 w-4 text-white/60 group-hover:text-cyan-400 transition-all duration-300" />
+                {cartItems.length > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-light">
+                    {cartItems.reduce((sum, item) => sum + item.quantity, 0)}
+                  </span>
+                )}
+              </button>
+
               {/* Mobile menu button */}
-              <div className="md:hidden">
+              <div className="lg:hidden">
                 <button
                   onClick={() => setIsOpen(!isOpen)}
-                  className="p-2 rounded-full bg-white/20 hover:bg-white/30 hover:scale-110 transition-all duration-300 ease-in-out transform"
+                  className="p-3 rounded-full hover:bg-white/5 transition-all duration-300 border border-white/10"
                 >
                   {isOpen ? (
-                    <X className="h-6 w-6 text-gray-700 transition-transform duration-300 rotate-180" />
+                    <X className="h-5 w-5 text-white/80" />
                   ) : (
-                    <Menu className="h-6 w-6 text-gray-700 transition-transform duration-300" />
+                    <Menu className="h-5 w-5 text-white/80" />
                   )}
                 </button>
               </div>
             </div>
           </div>
+        </div>
 
-          {/* Mobile Navigation */}
-          <div
-            className={`md:hidden backdrop-blur-md bg-white/10 border-t border-white/20 transition-all duration-500 ease-in-out transform ${
-              isOpen
-                ? "max-h-96 opacity-100 translate-y-0"
-                : "max-h-0 opacity-0 -translate-y-4 overflow-hidden"
-            }`}
-          >
-            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+        {/* Mobile Navigation */}
+        <div
+          className={`lg:hidden bg-black/40 backdrop-blur-3xl border-t border-white/5 transition-all duration-500 ease-out ${
+            isOpen
+              ? "max-h-screen opacity-100 visible"
+              : "max-h-0 opacity-0 invisible overflow-hidden"
+          }`}
+        >
+          <div className="px-4 py-8 space-y-2">
+            {['Home', 'Products', 'Categories', 'About', 'Contact'].map((item) => (
               <Link
-                href="/"
-                className="text-gray-700 hover:text-gray-900 block px-3 py-2 rounded-md text-base font-medium transition-all duration-300 hover:translate-x-2 hover:bg-white/10"
+                key={item}
+                href={item === 'Home' ? '/' : `/${item.toLowerCase()}`}
+                className="block px-6 py-4 text-white/70 hover:text-white hover:bg-white/5 rounded-xl transition-all duration-300 font-light uppercase tracking-wider border border-transparent hover:border-white/10"
+                onClick={() => setIsOpen(false)}
               >
-                Home
+                {item}
               </Link>
-              <Link
-                href="/products"
-                className="text-gray-700 hover:text-gray-900 block px-3 py-2 rounded-md text-base font-medium transition-all duration-300 hover:translate-x-2 hover:bg-white/10"
-              >
-                Products
-              </Link>
-              <Link
-                href="/categories"
-                className="text-gray-700 hover:text-gray-900 block px-3 py-2 rounded-md text-base font-medium transition-all duration-300 hover:translate-x-2 hover:bg-white/10"
-              >
-                Categories
-              </Link>
-              <Link
-                href="/about"
-                className="text-gray-700 hover:text-gray-900 block px-3 py-2 rounded-md text-base font-medium transition-all duration-300 hover:translate-x-2 hover:bg-white/10"
-              >
-                About
-              </Link>
-              <Link
-                href="/contact"
-                className="text-gray-700 hover:text-gray-900 block px-3 py-2 rounded-md text-base font-medium transition-all duration-300 hover:translate-x-2 hover:bg-white/10"
-              >
-                Contact
-              </Link>
-            </div>
-            <div className="space-x-3">
-              <SignedOut>
-                <SignInButton />
-                <SignUpButton />
-              </SignedOut>
-              
-            </div>
-            <div className="pt-4 pb-3 border-t border-white/20">
-              <div className="flex items-center justify-around px-5">
-                <button className="p-2 rounded-full bg-white/20 hover:bg-white/30 hover:scale-110 transition-all duration-300 ease-in-out transform">
-                  <Search className="h-5 w-5 text-gray-700 transition-transform duration-300 hover:rotate-12" />
-                </button>
-                <button className="p-2 rounded-full bg-white/20 hover:bg-white/30 hover:scale-110 transition-all duration-300 ease-in-out transform">
-                  <SignedIn>
-              <UserButton />
-            </SignedIn>
-                </button>
-                <button
-                  onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                  className="p-2 rounded-full bg-white/20 hover:bg-white/30 hover:scale-110 transition-all duration-300 ease-in-out transform relative"
-                >
-                  <ShoppingBag className="h-5 w-5 text-gray-700 transition-transform duration-300 hover:rotate-12" />
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center transition-all duration-300 hover:scale-110">
-                    {cartItems.reduce((sum, item) => sum + item.quantity, 0)}
-                  </span>
-                </button>
+            ))}
+            
+            {/* Mobile Auth */}
+            <SignedOut>
+              <div className="pt-6 border-t border-white/10 flex flex-col space-y-4">
+                <SignInButton>
+                  <button className="text-left px-6 py-4 text-white/70 hover:text-white hover:bg-white/5 rounded-xl transition-all duration-300 font-light uppercase tracking-wider border border-transparent hover:border-white/10">
+                    Access
+                  </button>
+                </SignInButton>
+                <SignUpButton>
+                  <button className="mx-6 bg-gradient-to-r from-cyan-500 to-blue-600 text-white py-4 rounded-xl hover:from-cyan-400 hover:to-blue-500 transition-all duration-300 font-light uppercase tracking-wider">
+                    Join
+                  </button>
+                </SignUpButton>
               </div>
-            </div>
+            </SignedOut>
           </div>
-        </nav>
+        </div>
+      </nav>
+
+        {/* Overlay */}
+        {isSidebarOpen && (
+          <div
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-all duration-500"
+            onClick={() => setIsSidebarOpen(false)}
+          />
+        )}
 
         {/* Shopping Cart Sidebar */}
         <div
-          className={`fixed top-0 right-0 h-full w-80 bg-white shadow-2xl z-[60] transform transition-transform duration-300 ease-in-out ${
+          className={`fixed top-0 right-0 h-full w-full sm:w-96  backdrop-blur-3xl z-50 transform transition-all duration-500 ease-out border-l border-white/10 ${
             isSidebarOpen ? "translate-x-0" : "translate-x-full"
           }`}
         >
           <div className="flex flex-col h-full">
             {/* Header */}
-            <div className="flex items-center justify-between p-6 bg-gray-50">
-              <h2 className="text-xl mx-auto font-semibold text-gray-800">
-                Your Cart
+            <div className="flex items-center justify-between p-6 border-b border-white/10">
+              <h2 className="text-xl font-thin text-white uppercase tracking-[0.2em]">
+                Cart
               </h2>
               <button
                 onClick={() => setIsSidebarOpen(false)}
-                className="p-2 hover:bg-gray-200 rounded-full transition-colors"
+                className="p-3 hover:bg-white/5 rounded-full transition-all duration-300 border border-white/10 hover:border-cyan-500/50"
               >
-                <X className="h-5 w-5 text-gray-600" />
+                <X className="h-4 w-4 text-white/60 hover:text-cyan-400 transition-colors duration-300" />
               </button>
             </div>
 
             {/* Cart Items */}
-            <div className="flex-1 overflow-y-auto p-4">
+            <div className="flex-1 overflow-y-auto">
               {cartItems.length === 0 ? (
-                <div className="text-center py-12">
-                  <ShoppingBag className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500 text-lg">Your cart is empty</p>
+                <div className="flex flex-col items-center justify-center h-full px-6">
+                  <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-6 border border-white/10">
+                    <ShoppingBag className="h-8 w-8 text-white/30" />
+                  </div>
+                  <p className="text-white/70 text-center font-light text-lg">Cart Empty</p>
+                  <p className="text-sm text-white/40 text-center mt-2 font-light uppercase tracking-wider">Add items to begin</p>
                 </div>
               ) : (
-                <div className="space-y-3">
-                  {cartItems.map((item, index) => (
+                <div className="p-6 space-y-8">
+                  {cartItems.map((item) => (
                     <div
                       key={item.id}
-                      className="group shadow-xl bg-white border border-gray-200 rounded-xl p-4 hover:shadow-lg transition-all duration-300 transform hover:scale-[1.02]"
-                      style={{
-                        animationDelay: `${index * 100}ms`,
-                        animationName: isSidebarOpen ? "slideInRight" : "",
-                        animationDuration: "0.4s",
-                        animationTimingFunction: "ease-out",
-                        animationFillMode: "forwards"
-                      }}
+                      className="group border-b border-white/10 pb-8 last:border-b-0 last:pb-0"
                     >
-                      <div className="flex items-start space-x-3">
-                        {/* Product Image */}
+                      <div className="flex items-start space-x-4">
                         <div className="flex-shrink-0">
                           <img
                             src={item.image}
                             alt={item.name}
-                            className="w-16 h-16 object-cover rounded-lg border border-gray-200"
+                            className="w-20 h-20 object-cover rounded-xl border border-white/10"
                           />
                         </div>
 
-                        {/* Product Details */}
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold text-gray-900 mb-1 truncate group-hover:text-blue-600 transition-colors">
-                            {item.name}
-                          </h3>
-                          <p className="text-lg font-bold text-green-600 mb-3">
-                            ${item.price.toFixed(2)}
-                          </p>
-
-                          {/* Quantity Controls */}
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center bg-gray-100 rounded-lg p-1">
-                              <button
-                                onClick={() =>
-                                  updateQuantity(item.id, item.quantity - 1)
-                                }
-                                disabled={item.quantity <= 1}
-                                className="p-1 hover:bg-gray-200 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                              >
-                                <Minus className="h-4 w-4 text-gray-600" />
-                              </button>
-                              <span className="w-12 text-center font-semibold text-gray-800">
-                                {item.quantity}
-                              </span>
-                              <button
-                                onClick={() =>
-                                  updateQuantity(item.id, item.quantity + 1)
-                                }
-                                className="p-1 hover:bg-gray-200 rounded-md transition-colors"
-                              >
-                                <Plus className="h-4 w-4 text-gray-600" />
-                              </button>
+                          <div className="flex items-start justify-between mb-4">
+                            <div>
+                              <h3 className="font-light text-white mb-2 truncate text-lg">
+                                {item.name}
+                              </h3>
+                              <p className="text-sm text-cyan-400 font-light">
+                                ${item.price.toFixed(2)}
+                              </p>
                             </div>
-
-                            {/* Remove Button */}
                             <button
                               onClick={() => removeItem(item.id)}
-                              className="p-2 hover:bg-red-50 rounded-lg transition-colors group/remove"
+                              className="p-2 hover:bg-white/5 rounded-full transition-all duration-300 ml-2 border border-white/10 hover:border-red-500/50"
                             >
-                              <Trash2 className="h-4 w-4 text-gray-400 group-hover/remove:text-red-500 transition-colors" />
+                              <Trash2 className="h-4 w-4 text-white/40 hover:text-red-400 transition-colors duration-300" />
                             </button>
                           </div>
 
-                          {/* Item Subtotal */}
-                          <div className="mt-2 text-right">
-                            <span className="text-sm text-gray-500">
-                              Subtotal:{" "}
-                            </span>
-                            <span className="font-semibold text-gray-900">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center border border-white/20 rounded-full bg-white/5 backdrop-blur-sm">
+                              <button
+                                onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                                disabled={item.quantity <= 1}
+                                className="p-3 hover:bg-white/10 rounded-l-full transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed"
+                              >
+                                <Minus className="h-3 w-3 text-white/60" />
+                              </button>
+                              <span className="px-6 py-3 font-light text-white min-w-[4rem] text-center">
+                                {item.quantity}
+                              </span>
+                              <button
+                                onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                                className="p-3 hover:bg-white/10 rounded-r-full transition-all duration-300"
+                              >
+                                <Plus className="h-3 w-3 text-white/60" />
+                              </button>
+                            </div>
+
+                            <span className="text-white font-light text-lg">
                               ${(item.price * item.quantity).toFixed(2)}
                             </span>
                           </div>
@@ -367,45 +329,32 @@ const Navbar = () => {
 
             {/* Footer */}
             {cartItems.length > 0 && (
-              <div className="bg-gray-50 p-6 space-y-4">
-                <div className="flex justify-between items-center text-lg">
-                  <span className="font-semibold text-gray-700">
-                    Total (
-                    {cartItems.reduce((sum, item) => sum + item.quantity, 0)}{" "}
-                    items):
+              <div className="border-t border-white/10 p-6 space-y-8">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-light text-white/60 uppercase tracking-[0.2em]">
+                    Total
                   </span>
-                  <span className="text-2xl font-bold text-gray-900">
+                  <span className="text-2xl font-thin text-white">
                     ${total.toFixed(2)}
                   </span>
                 </div>
-                <Link href={"/checkout"} onClick={checkout}><button className="w-full my-3 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 active:scale-95 transition-all duration-200 font-semibold text-lg shadow-lg hover:shadow-xl">
-                  Proceed to Checkout
-                </button></Link>
-                <button
-                  onClick={() => setIsSidebarOpen(false)}
-                  className="w-full bg-gray-200 text-gray-700 py-2 rounded-lg hover:bg-gray-300 transition-colors font-medium"
-                >
-                  Continue Shopping
-                </button>
+                <div className="space-y-8">
+                  <Link href="/checkout" onClick={checkout}>
+                    <button className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white py-4 rounded-full hover:from-cyan-400 hover:to-blue-500 transition-all duration-300 font-light text-sm uppercase tracking-[0.2em] shadow-lg hover:shadow-cyan-500/25">
+                      Checkout
+                    </button>
+                  </Link>
+                  <button
+                    onClick={() => setIsSidebarOpen(false)}
+                    className="w-full mt-3 text-white/70 py-4 rounded-full hover:bg-white/5 transition-all duration-300 font-light text-sm uppercase tracking-[0.2em] border border-white/20 hover:border-white/40"
+                  >
+                    Continue Shopping
+                  </button>
+                </div>
               </div>
             )}
           </div>
         </div>
-
-        <style jsx>{`
-          @keyframes slideInRight {
-            from {
-              opacity: 0;
-              transform: translateX(20px);
-            }
-            to {
-              opacity: 1;
-              transform: translateX(0);
-            }
-          }
-        `}</style>
-      
-    
     </ClerkProvider>
   )
 }
