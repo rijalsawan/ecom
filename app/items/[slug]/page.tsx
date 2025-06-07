@@ -1,418 +1,218 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'next/navigation'
-import { motion } from 'framer-motion'
-import { Star, Heart, ShoppingCart, Minus, Plus, Truck, Shield, RotateCcw } from 'lucide-react'
 import Image from 'next/image'
+import { Star, ShoppingCart, Heart, Share2, Truck, Shield, RotateCcw, ArrowLeft } from 'lucide-react'
+import Link from 'next/link'
+import { motion } from 'framer-motion'
+
+interface Category {
+    id: number
+    name: string
+    description: string
+    createdAt: string
+    updatedAt: string
+}
 
 interface Product {
     id: number
     name: string
     price: number
-    originalPrice?: number
-    rating: number
-    reviewCount?: number
     description: string
-    features?: string[]
-    images?: string[]
-    image: string
-    inStock?: boolean
-    category: string
-    quantity: number
+    imageUrl: string
+    category: Category | string
 }
 
-interface CartItem {
-    id: string
-    name: string
-    price: number
-    quantity: number
-    image: string
-}
 
 export default function ProductPage() {
     const params = useParams()
     const slug = params.slug as string
-    console.log(`Product slug: ${slug}`);
-    
-    
-    const [selectedImage, setSelectedImage] = useState(0)
-    const [quantity, setQuantity] = useState(1)
-    const [isLiked, setIsLiked] = useState(false)
-    const [loading, setLoading] = useState(true)
     const [product, setProduct] = useState<Product | null>(null)
-
-    // Get products from localStorage
-    const getProductsFromStorage = (): Product[] => {
-        if (typeof window !== 'undefined') {
-            const products = localStorage.getItem('cart')
-            return products ? JSON.parse(products) : []
+    const [loading, setLoading] = useState(true)
+    const [isFavorite, setIsFavorite] = useState(false)
+    
+    const getCategoryName = (category: Category | string): string => {
+        if (typeof category === 'string') {
+            return category
         }
-        return []
+        return category?.name || 'Uncategorized'
     }
 
-    // Get cart from localStorage
-    // Get cart from localStorage
-    const getCartFromStorage = (): CartItem[] => {
-        if (typeof window !== 'undefined') {
-            const cart = localStorage.getItem('cart')
-            return cart ? JSON.parse(cart) : []
-        }
-        return []
-    }
-    // Save cart to localStorage
-    const saveCartToStorage = (cart: CartItem[]) => {
-        if (typeof window !== 'undefined') {
-            localStorage.setItem('cart', JSON.stringify(cart))
-        }
-    }
-    // Find product by slug (assuming slug is the product id)
-    const findProduct = useCallback(() => {
-        const products = getProductsFromStorage()
-        console.log(products);
-        
-        const findId = (id: string, products: Product[]): Product | undefined => {
-            return products.find(product => product.id === parseInt(id))
-        }
-
-        const foundProduct = findId(slug, products)
-        
-        if (foundProduct) {
-            // Add default values for missing properties
-            const productWithDefaults: Product = {
-                ...foundProduct,
-                originalPrice: foundProduct.price + 100, // Mock original price
-                reviewCount: Math.floor(Math.random() * 500) + 50, // Mock review count
-                features: [
-                    "Premium quality construction",
-                    "Advanced technology integration",
-                    "User-friendly design",
-                    "Durable materials",
-                    "Excellent performance"
-                ],
-                images: [
-                    foundProduct.image,
-                    foundProduct.image,
-                    foundProduct.image
-                ],
-                inStock: foundProduct.quantity > 0
+    const fetchProduct = useCallback(async () => {
+        try {
+            setLoading(true)
+            const fetchedProduct = await fetch(`/api/listProducts`)
+            if (!fetchedProduct.ok) {
+                throw new Error('Failed to fetch product')
             }
-            setProduct(productWithDefaults)
+            const products: Product[] = await fetchedProduct.json()
+            
+            const foundProduct = products.find((p) => p.id === parseInt(slug))
+            if (foundProduct) {
+                setProduct(foundProduct)
+            } else {
+                setProduct(null)
+            } 
+        } catch (error) {
+            console.error('Error fetching product:', error)
+            setProduct(null)
+        } finally {
+            setLoading(false)
         }
     }, [slug])
-    // Check if product exists in cart and sync quantity
-    const syncWithCart = useCallback(() => {
-        if (!product) return
-        
-        const cart = getCartFromStorage()
-        const existingItem = cart.find(item => 
-            item.id === product.id.toString()
-        )
-        
-        if (existingItem) {
-            setQuantity(existingItem.quantity)
-        } else {
-            setQuantity(1)
-        }
-    }, [product])
-    // Add to cart or update quantity
-    const handleAddToCart = () => {
-        if (!product) return
-        
-        const cart = getCartFromStorage()
-        const cartItem: CartItem = {
-            id: product.id.toString(),
-            name: product.name,
-            price: product.price,
-            quantity: quantity,
-            image: product.image
-        }
-
-        const existingItemIndex = cart.findIndex(item => 
-            item.id === product.id.toString()
-        )
-
-        if (existingItemIndex > -1) {
-            cart[existingItemIndex].quantity = quantity
-        } else {
-            cart.push(cartItem)
-        }
-
-        saveCartToStorage(cart)
-        
-        // Dispatch custom event to notify other components
-        window.dispatchEvent(new CustomEvent('cartUpdated'))
-    }
-
-    // Update quantity and sync with cart
-    const updateQuantity = (newQuantity: number) => {
-        if (newQuantity < 1 || !product) return
-        
-        setQuantity(newQuantity)
-        
-        const cart = getCartFromStorage()
-        const existingItemIndex = cart.findIndex(item => 
-            item.id === product.id.toString()
-        )
-
-        if (existingItemIndex > -1) {
-            cart[existingItemIndex].quantity = newQuantity
-            saveCartToStorage(cart)
-            window.dispatchEvent(new CustomEvent('cartUpdated'))
-        }
-    }
 
     useEffect(() => {
-        // Find product and simulate loading
-        findProduct()
-        setTimeout(() => setLoading(false), 1000)
-    }, [findProduct])
-
-    useEffect(() => {
-        // Initial sync with cart when product is loaded
-        if (product) {
-            syncWithCart()
-        }
-    }, [product, syncWithCart])
-
-    const containerVariants = {
-        hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: {
-                staggerChildren: 0.1,
-                delayChildren: 0.2
-            }
-        }
-    }
-    const itemVariants = {
-        hidden: { y: 20, opacity: 0 },
-        visible: {
-            y: 0,
-            opacity: 1,
-            transition: { duration: 0.6, ease: "easeOut" }
-        }
-    }
+        fetchProduct()
+    }, [fetchProduct])
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                    className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full"
-                />
+            <div className="min-h-screen flex items-center justify-center bg-white">
+                <div className="text-center space-y-4">
+                    <div className="w-8 h-8 border-2 border-gray-200 border-t-gray-900 rounded-full animate-spin mx-auto"></div>
+                    <p className="text-gray-600 font-light">Loading product details...</p>
+                </div>
             </div>
         )
     }
 
     if (!product) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="text-center">
-                    <h1 className="text-2xl font-bold text-gray-900 mb-2">Product Not Found</h1>
-                    <p className="text-gray-600">The product youre looking for doesnt exist.</p>
+            <div className="min-h-screen flex items-center justify-center bg-white">
+                <div className="text-center space-y-6 p-8">
+                    <div className="w-16 h-16 bg-gray-100 flex items-center justify-center mx-auto">
+                        <ShoppingCart className="w-8 h-8 text-gray-400" />
+                    </div>
+                    <div className="space-y-2">
+                        <h1 className="text-2xl font-light text-gray-900">Product Not Found</h1>
+                        <p className="text-gray-600 font-light">The product youre looking for doesnt exist.</p>
+                    </div>
+                    <Link 
+                        href="/products" 
+                        className="inline-flex items-center gap-2 bg-gray-900 text-white px-6 py-2 font-medium hover:bg-gray-800 transition-all duration-300"
+                    >
+                        <ArrowLeft className="w-4 h-4" />
+                        Back to Products
+                    </Link>
                 </div>
             </div>
         )
     }
 
     return (
-        <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-            className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8"
-        >
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                    {/* Image Gallery */}
-                    <motion.div variants={itemVariants} className="space-y-4">
-                        <motion.div
-                            key={selectedImage}
-                            initial={{ opacity: 0, scale: 0.8 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ duration: 0.4 }}
-                            className="aspect-square rounded-2xl overflow-hidden bg-white shadow-2xl"
-                        >
+        <div className="min-h-screen bg-white">
+            {/* Breadcrumb */}
+            <div className="bg-white border-b my-8 border-gray-200">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+                    <div className="flex items-center gap-2 text-sm text-gray-600 font-light">
+                        <Link href="/" className="hover:text-gray-900 transition-colors">Home</Link>
+                        <span>/</span>
+                        <Link href="/products" className="hover:text-gray-900 transition-colors">Products</Link>
+                        <span>/</span>
+                        <span className="text-gray-900">{product.name}</span>
+                    </div>
+                </div>
+            </div>
+
+            {/* Main Content */}
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 lg:py-12">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16">
+                    {/* Product Image */}
+                    <motion.div 
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.6 }}
+                        className="group"
+                    >
+                        <div className="relative aspect-square bg-gray-50 overflow-hidden">
                             <Image
-                                src={product.images![selectedImage]}
+                                src={product.imageUrl}
                                 alt={product.name}
-                                width={500}
-                                height={500}
-                                className="w-full h-full object-cover"
+                                fill
+                                className="object-cover transition-transform duration-700 group-hover:scale-105"
+                                priority
                             />
-                        </motion.div>
-                        
-                        <div className="flex space-x-2">
-                            {product.images!.map((image, index) => (
-                                <motion.button
-                                    key={index}
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
-                                    onClick={() => setSelectedImage(index)}
-                                    className={`w-20 h-20 rounded-lg overflow-hidden border-2 transition-all ${
-                                        selectedImage === index ? 'border-blue-500' : 'border-gray-300'
-                                    }`}
-                                >
-                                    <Image 
-                                        src={image} 
-                                        alt={`${product.name} ${index + 1}`} 
-                                        width={80}
-                                        height={80}
-                                        className="w-full h-full object-cover" 
-                                    />
-                                </motion.button>
-                            ))}
                         </div>
                     </motion.div>
+
                     {/* Product Details */}
-                    <motion.div variants={itemVariants} className="space-y-6">
-                        <div>
-                            <motion.h1
-                                initial={{ x: -20 }}
-                                animate={{ x: 0 }}
-                                className="text-4xl font-bold text-gray-900 mb-2"
-                            >
-                                {product.name}
-                            </motion.h1>
-                            
-                            <div className="flex items-center space-x-4 mb-4">
-                                <div className="flex items-center">
-                                    {[...Array(5)].map((_, i) => (
-                                        <Star
-                                            key={i}
-                                            className={`w-5 h-5 ${
-                                                i < Math.floor(product.rating) ? 'text-yellow-400 fill-current' : 'text-gray-300'
-                                            }`}
-                                        />
-                                    ))}
-                                    <span className="ml-2 text-gray-600">({product.reviewCount} reviews)</span>
-                                </div>
-                            </div>
-
-                            <div className="flex items-center space-x-4">
-                                <span className="text-3xl font-bold text-gray-900">${product.price}</span>
-                                {product.originalPrice && (
-                                    <span className="text-xl text-gray-500 line-through">${product.originalPrice}</span>
-                                )}
-                                <span className="bg-red-100 text-red-600 px-2 py-1 rounded-full text-sm font-medium">
-                                    Save ${(product.originalPrice || 0) - product.price}
-                                </span>
+                    <motion.div 
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.6, delay: 0.2 }}
+                        className="space-y-6 lg:space-y-8"
+                    >
+                        {/* Category */}
+                        <div className="flex justify-between items-start">
+                            <span className="text-xs text-gray-500 uppercase tracking-wide">
+                                {getCategoryName(product.category)}
+                            </span>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => setIsFavorite(!isFavorite)}
+                                    className="p-2 hover:bg-gray-50 transition-colors"
+                                >
+                                    <Heart className={`w-5 h-5 ${isFavorite ? 'fill-current text-red-500' : 'text-gray-400'}`} />
+                                </button>
+                                <button className="p-2 hover:bg-gray-50 transition-colors">
+                                    <Share2 className="w-5 h-5 text-gray-400" />
+                                </button>
                             </div>
                         </div>
 
-                        <motion.p
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: 0.3 }}
-                            className="text-gray-600 leading-relaxed"
-                        >
-                            {product.description}
-                        </motion.p>
+                        {/* Product Name */}
+                        <h1 className="text-2xl lg:text-3xl font-light text-gray-900 leading-tight">
+                            {product.name}
+                        </h1>
 
-                        {/* Quantity */}
-                        {/* Quantity */}
-                        <div>
-                            <h3 className="text-lg font-semibold mb-3">Quantity</h3>
-                            <div className="flex items-center space-x-4">
-                                <div className="flex items-center border border-gray-300 rounded-lg">
-                                    <motion.button
-                                        whileTap={{ scale: 0.9 }}
-                                        onClick={() => updateQuantity(quantity - 1)}
-                                        className="p-2 hover:bg-gray-100 transition-colors"
-                                    >
-                                        <Minus className="w-4 h-4" />
-                                    </motion.button>
-                                    <span className="px-4 py-2 font-medium">{quantity}</span>
-                                    <motion.button
-                                        whileTap={{ scale: 0.9 }}
-                                        onClick={() => updateQuantity(quantity + 1)}
-                                        className="p-2 hover:bg-gray-100 transition-colors"
-                                    >
-                                        <Plus className="w-4 h-4" />
-                                    </motion.button>
-                                </div>
-                                <span className="text-sm text-gray-500">
-                                    {product.quantity} available
-                                </span>
-                            </div>
-                        </div>
-                        {/* Actions */}
-                        <div className="flex space-x-4">
-                            <motion.button
-                                whileHover={{ scale: 1.02 }}
-                                whileTap={{ scale: 0.98 }}
-                                onClick={handleAddToCart}
-                                disabled={!product.inStock}
-                                className="flex-1 bg-blue-600 text-white py-3 px-6 rounded-xl font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2 disabled:bg-gray-400"
-                            >
-                                <ShoppingCart className="w-5 h-5" />
-                                <span>{product.inStock ? 'Add to Cart' : 'Out of Stock'}</span>
-                            </motion.button>
-                            
-                            <motion.button
-                                whileHover={{ scale: 1.05 }}
-                                whileTap={{ scale: 0.95 }}
-                                onClick={() => setIsLiked(!isLiked)}
-                                className={`p-3 rounded-xl border-2 transition-all ${
-                                    isLiked ? 'border-red-500 bg-red-50 text-red-500' : 'border-gray-300 hover:border-gray-400'
-                                }`}
-                            >
-                                <Heart className={`w-6 h-6 ${isLiked ? 'fill-current' : ''}`} />
-                            </motion.button>
-                        </div>
-
-                        {/* Features */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.5 }}
-                            className="bg-white rounded-xl p-6 shadow-lg"
-                        >
-                            <h3 className="text-lg font-semibold mb-4">Key Features</h3>
-                            <ul className="space-y-2">
-                                {product.features!.map((feature, index) => (
-                                    <motion.li
-                                        key={index}
-                                        initial={{ opacity: 0, x: -20 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        transition={{ delay: 0.6 + index * 0.1 }}
-                                        className="flex items-center text-gray-600"
-                                    >
-                                        <div className="w-2 h-2 bg-blue-500 rounded-full mr-3" />
-                                        {feature}
-                                    </motion.li>
+                        {/* Rating */}
+                        <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-1">
+                                {[...Array(5)].map((_, i) => (
+                                    <Star
+                                        key={i}
+                                        className={`w-4 h-4 ${
+                                            i < 4 ? 'text-yellow-400 fill-current' : 'text-gray-300'
+                                        }`}
+                                    />
                                 ))}
-                            </ul>
-                        </motion.div>
+                            </div>
+                            <span className="text-gray-600 text-sm font-light">4.8 (256 reviews)</span>
+                        </div>
 
-                        {/* Shipping Info */}
-                        <div className="grid grid-cols-3 gap-4">
-                            <motion.div
-                                whileHover={{ y: -2 }}
-                                className="text-center p-4 bg-white rounded-lg shadow-sm"
-                            >
-                                <Truck className="w-6 h-6 mx-auto mb-2 text-blue-500" />
-                                <span className="text-sm text-gray-600">Free Shipping</span>
-                            </motion.div>
-                            <motion.div
-                                whileHover={{ y: -2 }}
-                                className="text-center p-4 bg-white rounded-lg shadow-sm"
-                            >
-                                <Shield className="w-6 h-6 mx-auto mb-2 text-green-500" />
-                                <span className="text-sm text-gray-600">2 Year Warranty</span>
-                            </motion.div>
-                            <motion.div
-                                whileHover={{ y: -2 }}
-                                className="text-center p-4 bg-white rounded-lg shadow-sm"
-                            >
-                                <RotateCcw className="w-6 h-6 mx-auto mb-2 text-purple-500" />
-                                <span className="text-sm text-gray-600">30 Day Returns</span>
-                            </motion.div>
+                        {/* Price */}
+                        <div className="flex items-baseline gap-3">
+                            <span className="text-2xl lg:text-3xl font-light text-gray-900">${product.price}</span>
+                            <span className="text-lg text-gray-500 line-through font-light">${(product.price * 1.3)}</span>
+                        </div>
+
+                        {/* Description */}
+                        <div className="space-y-3">
+                            <p className="text-gray-600 font-light leading-relaxed">
+                                {product.description || "Experience premium quality and exceptional design with this carefully crafted product. Built with attention to detail and designed to exceed your expectations."}
+                            </p>
+                        </div>
+
+                        
+
+                        {/* Additional Info */}
+                        <div className="space-y-4 pt-6 border-t border-gray-200">
+                            <div className="flex items-center gap-3 text-sm">
+                                <Truck className="w-5 h-5 text-gray-400" />
+                                <span className="text-gray-600 font-light">Free shipping on orders over $50</span>
+                            </div>
+                            <div className="flex items-center gap-3 text-sm">
+                                <Shield className="w-5 h-5 text-gray-400" />
+                                <span className="text-gray-600 font-light">2-year manufacturer warranty</span>
+                            </div>
+                            <div className="flex items-center gap-3 text-sm">
+                                <RotateCcw className="w-5 h-5 text-gray-400" />
+                                <span className="text-gray-600 font-light">30-day return policy</span>
+                            </div>
                         </div>
                     </motion.div>
                 </div>
             </div>
-        </motion.div>
+        </div>
     )
 }

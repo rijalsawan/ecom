@@ -1,6 +1,7 @@
 'use client'
 import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
+import Link from 'next/link'
 
 interface Product {
     id: number
@@ -187,6 +188,7 @@ const Page = () =>  {
         )
     }
 
+
     return (
         <div className="">
 
@@ -225,7 +227,7 @@ const Page = () =>  {
                             key={product.id}
                             variants={itemVariants}
                             whileHover={{ y: -4 }}
-                            className="group bg-white border border-gray-100 hover:border-gray-200 transition-all duration-300"
+                            className="group bg-white border-[1px] border-gray-300 hover:border-gray-200 transition-all duration-300"
                         >
                             {/* Product Image */}
                             <div className="relative aspect-square overflow-hidden bg-gray-50">
@@ -257,8 +259,30 @@ const Page = () =>  {
                                 </div>
                                 
                                 <p className="text-gray-600 text-xs lg:text-sm mb-4 leading-relaxed line-clamp-2">
-                                    {product.description}
+                                    {product.description}...
                                 </p>
+                                <Link href={`/items/${product.id}`}><div className=''>
+                                <motion.p 
+                                    className="text-gray-600 w-1/2 cursor-pointer text-xs lg:text-sm mb-4 leading-relaxed line-clamp-2 relative"
+                                    whileHover="hover"
+                                    initial="initial"
+                                    variants={{
+                                        initial: {},
+                                        hover: {}
+                                    }}
+                                >
+                                    See more
+                                    <motion.span
+                                        className="absolute bottom-0 left-0 h-0.5 bg-gray-600"
+                                        variants={{
+                                            initial: { width: 0 },
+                                            hover: { width: "100%" }
+                                        }}
+                                        transition={{ duration: 0.3, ease: "easeInOut" }}
+                                    />
+                                </motion.p>
+                                </div>
+                                </Link>
 
                                 <div className="flex justify-between items-center">
                                     <span className="text-lg lg:text-xl font-light text-gray-900">

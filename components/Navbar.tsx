@@ -284,7 +284,7 @@ const Navbar = () => {
                                 {item.name}
                               </h3>
                               <p className="text-sm text-cyan-400 font-light">
-                                ${item.price.toFixed(2)}
+                                ${item.price}
                               </p>
                             </div>
                             <button
