@@ -25,8 +25,8 @@ export async function POST(request: NextRequest) {
                 },
             ],
             mode: 'payment',
-            success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
-            cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/checkout`,
+            success_url: `https://ecom-eta-mauve.vercel.app/success?session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url: `https://ecom-eta-mauve.vercel.app/checkout`,
             metadata: {
                 customerName: customerInfo.name,
                 customerEmail: customerInfo.email,
