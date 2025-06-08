@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint"
   },
@@ -23,7 +23,8 @@
     "next": "^15.3.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "stripe": "^18.2.1"
+    "stripe": "^18.2.1",
+    "vercel": "^42.3.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

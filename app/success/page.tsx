@@ -1,5 +1,6 @@
+// Update app/success/page.tsx
 'use client'
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 interface Order {
@@ -18,7 +19,8 @@ interface Order {
     createdAt: string;
 }
 
-export default function SuccessPage() {
+// Create a separate component for the content that uses useSearchParams
+function SuccessPageContent() {
     const [order, setOrder] = useState<Order | null>(null);
     const [loading, setLoading] = useState(true);
     const searchParams = useSearchParams();
@@ -158,5 +160,23 @@ export default function SuccessPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+// Loading component for Suspense fallback
+function SuccessPageLoading() {
+    return (
+        <div className="min-h-screen flex items-center justify-center">
+            <div className="w-8 h-8 border-2 border-gray-300 border-t-gray-900 rounded-full animate-spin"></div>
+        </div>
+    );
+}
+
+// Main component wrapped in Suspense
+export default function SuccessPage() {
+    return (
+        <Suspense fallback={<SuccessPageLoading />}>
+            <SuccessPageContent />
+        </Suspense>
     );
 }
