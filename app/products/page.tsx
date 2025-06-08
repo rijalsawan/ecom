@@ -1,5 +1,5 @@
 'use client'
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 
@@ -39,6 +39,7 @@ interface ApiProduct {
 const Page = () =>  {
     const [products, setProducts] = useState<Product[]>([]);
     const [selectedCategory, setSelectedCategory] = useState<string>('All')
+    const [searchQuery, setSearchQuery] = useState<string>('')
     const [isLoading, setIsLoading] = useState(true)
     const [cart, setCart] = useState<CartItem[]>([])
     const [categories, setCategories] = useState<string[]>(['All'])
@@ -145,9 +146,31 @@ const Page = () =>  {
         return item ? item.quantity : 0
     }
 
-    const filteredProducts = selectedCategory === 'All' 
-        ? products 
-        : products.filter(p => p.category === selectedCategory)
+    // Filter products based on search query and category
+    const filteredProducts = useMemo(() => {
+        let filtered = products
+
+        // Filter by category
+        if (selectedCategory !== 'All') {
+            filtered = filtered.filter(p => p.category === selectedCategory)
+        }
+
+        // Filter by search query
+        if (searchQuery.trim()) {
+            const query = searchQuery.toLowerCase().trim()
+            filtered = filtered.filter(p => 
+                p.name.toLowerCase().includes(query) ||
+                p.description.toLowerCase().includes(query) ||
+                p.category.toLowerCase().includes(query)
+            )
+        }
+
+        return filtered
+    }, [products, selectedCategory, searchQuery])
+
+    const clearSearch = () => {
+        setSearchQuery('')
+    }
 
     const containerVariants = {
         hidden: { opacity: 0 },
@@ -188,11 +211,77 @@ const Page = () =>  {
         )
     }
 
-
     return (
         <div className="">
-
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
+                
+                {/* Search Bar */}
+                <motion.div
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ duration: 0.6 }}
+                    className="mb-8 lg:mb-12"
+                >
+                    <div className="relative max-w-md mx-auto">
+                        <div className="relative">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg 
+                                    className="h-5 w-5 text-gray-400" 
+                                    fill="none" 
+                                    viewBox="0 0 24 24" 
+                                    stroke="currentColor"
+                                >
+                                    <path 
+                                        strokeLinecap="round" 
+                                        strokeLinejoin="round" 
+                                        strokeWidth={2} 
+                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" 
+                                    />
+                                </svg>
+                            </div>
+                            <input
+                                type="text"
+                                placeholder="Search products..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="block w-full pl-10 pr-10 py-3 border border-gray-300 bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all duration-300 text-sm"
+                            />
+                            {searchQuery && (
+                                <button
+                                    onClick={clearSearch}
+                                    className="absolute inset-y-0 right-0 pr-3 flex items-center hover:text-gray-900 transition-colors duration-200"
+                                >
+                                    <svg 
+                                        className="h-5 w-5 text-gray-400 hover:text-gray-600" 
+                                        fill="none" 
+                                        viewBox="0 0 24 24" 
+                                        stroke="currentColor"
+                                    >
+                                        <path 
+                                            strokeLinecap="round" 
+                                            strokeLinejoin="round" 
+                                            strokeWidth={2} 
+                                            d="M6 18L18 6M6 6l12 12" 
+                                        />
+                                    </svg>
+                                </button>
+                            )}
+                        </div>
+                        
+                        {/* Search Results Count */}
+                        {searchQuery && (
+                            <motion.p 
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="text-sm text-gray-500 mt-2 text-center"
+                            >
+                                {filteredProducts.length} product{filteredProducts.length !== 1 ? 's' : ''} found
+                                {searchQuery && ` for "${searchQuery}"`}
+                            </motion.p>
+                        )}
+                    </div>
+                </motion.div>
+
                 {/* Category Filter */}
                 <motion.div
                     initial={{ y: 20, opacity: 0 }}
@@ -243,8 +332,6 @@ const Page = () =>  {
                                         {getCartItemQuantity(product.id)}
                                     </div>
                                 )}
-                                
-                                
                             </div>
 
                             {/* Product Info */}
@@ -261,27 +348,28 @@ const Page = () =>  {
                                 <p className="text-gray-600 text-xs lg:text-sm mb-4 leading-relaxed line-clamp-2">
                                     {product.description}...
                                 </p>
-                                <Link href={`/items/${product.id}`}><div className=''>
-                                <motion.p 
-                                    className="text-gray-600 w-1/2 cursor-pointer text-xs lg:text-sm mb-4 leading-relaxed line-clamp-2 relative"
-                                    whileHover="hover"
-                                    initial="initial"
-                                    variants={{
-                                        initial: {},
-                                        hover: {}
-                                    }}
-                                >
-                                    See more
-                                    <motion.span
-                                        className="absolute bottom-0 left-0 h-0.5 bg-gray-600"
-                                        variants={{
-                                            initial: { width: 0 },
-                                            hover: { width: "100%" }
-                                        }}
-                                        transition={{ duration: 0.3, ease: "easeInOut" }}
-                                    />
-                                </motion.p>
-                                </div>
+                                <Link href={`/items/${product.id}`}>
+                                    <div className=''>
+                                        <motion.p 
+                                            className="text-gray-600 w-1/2 cursor-pointer text-xs lg:text-sm mb-4 leading-relaxed line-clamp-2 relative"
+                                            whileHover="hover"
+                                            initial="initial"
+                                            variants={{
+                                                initial: {},
+                                                hover: {}
+                                            }}
+                                        >
+                                            See more
+                                            <motion.span
+                                                className="absolute bottom-0 left-0 h-0.5 bg-gray-600"
+                                                variants={{
+                                                    initial: { width: 0 },
+                                                    hover: { width: "100%" }
+                                                }}
+                                                transition={{ duration: 0.3, ease: "easeInOut" }}
+                                            />
+                                        </motion.p>
+                                    </div>
                                 </Link>
 
                                 <div className="flex justify-between items-center">
@@ -314,7 +402,32 @@ const Page = () =>  {
                         transition={{ duration: 0.6 }}
                         className="text-center py-16 lg:py-24"
                     >
-                        <p className="text-gray-500 text-lg font-light">No products found in this category.</p>
+                        <div className="mb-4">
+                            <svg 
+                                className="mx-auto h-12 w-12 text-gray-400" 
+                                fill="none" 
+                                viewBox="0 0 24 24" 
+                                stroke="currentColor"
+                            >
+                                <path 
+                                    strokeLinecap="round" 
+                                    strokeLinejoin="round" 
+                                    strokeWidth={1} 
+                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" 
+                                />
+                            </svg>
+                        </div>
+                        <p className="text-gray-500 text-lg font-light mb-2">
+                            {searchQuery ? 'No products found for your search.' : 'No products found in this category.'}
+                        </p>
+                        {searchQuery && (
+                            <button
+                                onClick={clearSearch}
+                                className="text-gray-900 text-sm underline hover:no-underline transition-all duration-200"
+                            >
+                                Clear search
+                            </button>
+                        )}
                     </motion.div>
                 )}
             </div>

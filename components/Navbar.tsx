@@ -13,7 +13,6 @@ import {
   Menu,
   X,
   ShoppingBag,
-  Search,
   Minus,
   Plus,
   Trash2,
@@ -101,7 +100,7 @@ const Navbar = () => {
             {/* Desktop Navigation */}
             <div className="hidden lg:block">
               <div className="flex items-center space-x-12">
-                {['Home', 'Products', 'Categories', 'About', 'Contact'].map((item) => (
+                {['Home', 'Products', 'contact'].map((item) => (
                   <Link
                     key={item}
                     href={item === 'Home' ? '/' : `/${item.toLowerCase()}`}
@@ -120,12 +119,12 @@ const Navbar = () => {
                 <div className="hidden sm:flex items-center space-x-4">
                   <SignInButton>
                     <button className="text-sm font-light text-white/70 hover:text-white transition-all duration-300 uppercase tracking-wider">
-                      Access
+                      Login
                     </button>
                   </SignInButton>
                   <SignUpButton>
                     <button className="bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-6 py-2 text-sm font-light rounded-full hover:from-cyan-400 hover:to-blue-500 transition-all duration-300 uppercase tracking-wider shadow-lg hover:shadow-cyan-500/25">
-                      Join
+                      SignUp
                     </button>
                   </SignUpButton>
                 </div>
@@ -138,9 +137,7 @@ const Navbar = () => {
 
               {/* Desktop Icons */}
               <div className="hidden md:flex items-center space-x-2">
-                <button className="p-3 rounded-full hover:bg-white/5 transition-all duration-300 group border border-white/10 hover:border-cyan-500/50">
-                  <Search className="h-4 w-4 text-white/60 group-hover:text-cyan-400 transition-all duration-300" />
-                </button>
+                
                 <button
                   onClick={() => setIsSidebarOpen(!isSidebarOpen)}
                   className="p-3 rounded-full hover:bg-white/5 transition-all duration-300 group relative border border-white/10 hover:border-cyan-500/50"

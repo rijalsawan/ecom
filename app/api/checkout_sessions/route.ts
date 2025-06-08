@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
                 customerEmail: customerInfo.email,
                 customerPhone: customerInfo.phone,
                 customerAddress: customerInfo.address,
-                cartItems: JSON.stringify(cartItems), // Store cart items as JSON string
+                cartItems: JSON.stringify(cartItems),
             },
         });
 
