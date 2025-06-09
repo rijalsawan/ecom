@@ -1,6 +1,6 @@
 // Create app/admin/layout.tsx
 import Link from 'next/link'
-import { Package, Plus, BarChart3, Users, Settings } from 'lucide-react'
+import { Package, Phone, BarChart3, Users} from 'lucide-react'
 
 export default function AdminLayout({
     children,
@@ -35,11 +35,11 @@ export default function AdminLayout({
                             </li>
                             <li>
                                 <Link 
-                                    href="/admin/products/add"
+                                    href="/admin/contacts"
                                     className="flex items-center gap-3 px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-50"
                                 >
-                                    <Plus className="w-5 h-5" />
-                                    Add Product
+                                    <Phone className="w-5 h-5" />
+                                    Contact
                                 </Link>
                             </li>
                             <li>
@@ -51,15 +51,7 @@ export default function AdminLayout({
                                     Orders
                                 </Link>
                             </li>
-                            <li>
-                                <Link 
-                                    href="/admin/settings"
-                                    className="flex items-center gap-3 px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-50"
-                                >
-                                    <Settings className="w-5 h-5" />
-                                    Settings
-                                </Link>
-                            </li>
+                            
                         </ul>
                     </nav>
                 </aside>
