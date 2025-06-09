@@ -1,11 +1,22 @@
-'use client';
+
 import React from 'react';
+import { Metadata } from 'next';
 
 import "./globals.css";
 import {
   ClerkProvider,
 } from '@clerk/nextjs'
 import Navbar from '@/components/Navbar';
+
+export const metadata: Metadata = {
+  title: 'Ecom',
+  description: 'Best E-commerce platform',
+  icons: {
+    icon: '/favicon.svg',
+    shortcut: '/favicon-16x16.png',
+    apple: '/apple-touch-icon.png',
+  },
+}
 
 
 
