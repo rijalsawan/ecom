@@ -190,7 +190,7 @@ const Navbar = () => {
           }`}
         >
           <div className="px-4 py-8 space-y-2">
-            {['Home', 'Products', 'Categories', 'About', 'Contact'].map((item) => (
+            {['Home', 'Products', 'Contact'].map((item) => (
               <Link
                 key={item}
                 href={item === 'Home' ? '/' : `/${item.toLowerCase()}`}
