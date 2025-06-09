@@ -27,7 +27,6 @@ export default function AddProductsPage() {
     const [message, setMessage] = useState('');
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string>('');
-    const [uploadMethod, setUploadMethod] = useState<'url' | 'upload'>('url');
 
     // Handle file selection
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -87,7 +86,7 @@ export default function AddProductsPage() {
         try {
             let finalImageUrl = formData.imageUrl;
 
-            if (uploadMethod === 'upload' && selectedFile) {
+            if (selectedFile) {
                 setMessage('Uploading image...');
                 finalImageUrl = await uploadImage(selectedFile);
             }
@@ -152,16 +151,6 @@ export default function AddProductsPage() {
                 ...(name === 'categoryId' && value ? { categoryName: '' } : {}),
                 ...(name === 'categoryName' && value ? { categoryId: '' } : {})
             });
-        }
-    };
-
-    const handleUploadMethodChange = (method: 'url' | 'upload') => {
-        setUploadMethod(method);
-        if (method === 'url') {
-            setSelectedFile(null);
-            setImagePreview('');
-        } else {
-            setFormData({ ...formData, imageUrl: '' });
         }
     };
 
@@ -247,62 +236,6 @@ export default function AddProductsPage() {
                         <div className="border-t border-gray-200 pt-8">
                             <h3 className="text-lg font-medium text-gray-900 mb-6">Product Image</h3>
                             
-                            {/* Upload Method Toggle */}
-                            <div className="flex border border-gray-300 mb-6 w-fit">
-                                <button
-                                    type="button"
-                                    onClick={() => handleUploadMethodChange('url')}
-                                    className={`px-6 py-2 text-sm font-medium transition-all ${
-                                        uploadMethod === 'url'
-                                            ? 'bg-gray-900 text-white'
-                                            : 'bg-white text-gray-600 hover:text-gray-900 border-r border-gray-300'
-                                    }`}
-                                >
-                                    URL
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => handleUploadMethodChange('upload')}
-                                    className={`px-6 py-2 text-sm font-medium transition-all ${
-                                        uploadMethod === 'upload'
-                                            ? 'bg-gray-900 text-white'
-                                            : 'bg-white text-gray-600 hover:text-gray-900'
-                                    }`}
-                                >
-                                    Upload
-                                </button>
-                            </div>
-
-                            {/* URL Input */}
-                            {uploadMethod === 'url' && (
-                                <div className="space-y-4">
-                                    <input
-                                        type="url"
-                                        name="imageUrl"
-                                        value={formData.imageUrl}
-                                        onChange={handleChange}
-                                        className="w-full border border-gray-300 px-4 py-3 text-gray-900 placeholder-gray-500 focus:border-gray-900 focus:outline-none transition-colors"
-                                        placeholder="https://example.com/image.jpg"
-                                    />
-                                    {formData.imageUrl && (
-                                        <div className="flex justify-center">
-                                            <div className="relative aspect-square w-32 overflow-hidden bg-gray-50">
-                                                <img
-                                                    src={formData.imageUrl}
-                                                    alt="Preview"
-                                                    className="w-full h-full object-cover"
-                                                    onError={(e) => {
-                                                        e.currentTarget.src = 'https://via.placeholder.com/150?text=Invalid+URL';
-                                                    }}
-                                                />
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-
-                            {/* File Upload */}
-                            {uploadMethod === 'upload' && (
                                 <div className="space-y-4">
                                     <div className="border-2 border-dashed border-gray-300 p-8 text-center hover:border-gray-400 transition-colors cursor-pointer">
                                         <input
@@ -358,7 +291,6 @@ export default function AddProductsPage() {
                                         </div>
                                     )}
                                 </div>
-                            )}
                         </div>
 
                         {/* Category Section */}
