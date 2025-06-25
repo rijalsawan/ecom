@@ -4,7 +4,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = "prisma+postgres://accelerate.prisma-data.net/?api_key=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcGlfa2V5IjoiMDFKV1pGUU4xQlhRMEcyN1c0Tkc1RkswRTQiLCJ0ZW5hbnRfaWQiOiI0YzQ4YmNmNDYxZjY3ZmY3NmI2ZTFjMzg2MjdhMjEwYTRlNmZiMGE1YjRhNmYyYTVhMmNmYjUzYWQ1MzA3NjJiIiwiaW50ZXJuYWxfc2VjcmV0IjoiYWY5ZjkxN2YtNjk1Ni00OGE4LTk5YWQtYjUxZTIyZDUzMmFiIn0.eSCOUZ2_3IeepTsOAF2jlgQ6CjSqt0PTTQts460BAm4"
+  url      = "prisma+postgres://accelerate.prisma-data.net/?api_key=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcGlfa2V5IjoiMDFKWU05UzNKMzBTWlhKVDhOSDNDTUZUQkYiLCJ0ZW5hbnRfaWQiOiIwODgwNjBjNjNiZjA4MjJjM2YzZjE0NmQwYzczMjQ2YTlmMzFkZDQzNzIwNjAxZTY2ZmU3M2UzYTE2ZTRiM2IxIiwiaW50ZXJuYWxfc2VjcmV0IjoiOTBlOTNkZDAtYmYyNC00MzY2LTllZTUtYzQxZDg4N2Y4NWQ4In0.nwK5mBTrNU3ySGeSi7cuObMMxRoaTPKdVo-9UxwBEPI"
 }
 
 model User {
