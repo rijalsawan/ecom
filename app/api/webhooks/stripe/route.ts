@@ -1,19 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import prisma from '@/lib/prisma';
 import Stripe from 'stripe';
-
-interface CartItem {
-    id: string;
-    name: string;
-    price: string;
-    quantity: string;
-}
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
     apiVersion: '2025-05-28.basil',
 });
-
-const prisma = new PrismaClient();
 
 export async function GET() {
     return NextResponse.json({ 
@@ -99,7 +90,7 @@ export async function POST(request: NextRequest) {
                 customerEmail,
                 customerPhone,
                 customerAddress,
-                cartItems: cartItemsString
+                orderId
             } = session.metadata || {};
 
             console.log('👤 Customer info:', {
@@ -107,53 +98,22 @@ export async function POST(request: NextRequest) {
                 email: customerEmail,
                 phone: customerPhone,
                 address: customerAddress,
-                cartItemsLength: cartItemsString?.length
+                orderId: orderId
             });
 
-            if (!cartItemsString) {
-                console.error('❌ No cart items found in session metadata');
+            if (!orderId) {
+                console.error('❌ No order ID found in session metadata');
                 console.log('📋 Available metadata keys:', Object.keys(session.metadata || {}));
-                return NextResponse.json({ error: 'No cart items found' }, { status: 400 });
+                return NextResponse.json({ error: 'No order ID found' }, { status: 400 });
             }
 
-            let cartItems;
-            try {
-                cartItems = JSON.parse(cartItemsString);
-                console.log('🛒 Parsed cart items:', cartItems);
-            } catch (parseError) {
-                console.error('❌ Error parsing cart items:', parseError);
-                console.log('📝 Raw cart items string:', cartItemsString);
-                return NextResponse.json({ error: 'Invalid cart items format' }, { status: 400 });
-            }
-
-            // Validate cart items
-            if (!Array.isArray(cartItems) || cartItems.length === 0) {
-                console.error('❌ Invalid cart items array:', cartItems);
-                return NextResponse.json({ error: 'Invalid cart items' }, { status: 400 });
-            }
-
-            // Create order
-            console.log('💾 Creating order in database...');
-            const orderData = {
-                name: customerName || `Order for ${customerEmail}` || 'Customer',
-                stripeSessionId: session.id,
-                email: customerEmail || '',
-                phone: customerPhone || '',
-                shippingAddress: customerAddress || '',
-                total: (session.amount_total || 0) / 100,
-                status: 'COMPLETED',
-                items: {
-                    create: cartItems.map((item: CartItem) => ({
-                        productId: parseInt(item.id),
-                        name: item.name,
-                        price: parseFloat(item.price),
-                        quantity: parseInt(item.quantity),
-                    }))
-                }
-            };
-
-            const order = await prisma.order.create({
-                data: orderData,
+            // Update the existing order status to COMPLETED
+            console.log('� Updating order status in database...');
+            const order = await prisma.order.update({
+                where: { id: parseInt(orderId) },
+                data: { 
+                    status: 'COMPLETED'
+                },
                 include: {
                     items: true
                 }
@@ -184,7 +144,5 @@ export async function POST(request: NextRequest) {
             },
             { status: 500 }
         );
-    } finally {
-        await prisma.$disconnect();
     }
 }
