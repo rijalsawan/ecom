@@ -40,12 +40,6 @@ export default function Home() {
             >
               Explore Products
             </Link>
-            <Link 
-              href="/about" 
-              className="border border-gray-900 text-gray-900 px-6 lg:px-8 py-3 lg:py-4 text-sm lg:text-base font-medium hover:bg-gray-900 hover:text-white transition-all duration-300"
-            >
-              Learn More
-            </Link>
           </div>
         </motion.main>
       </div>
