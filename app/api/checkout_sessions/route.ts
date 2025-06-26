@@ -32,7 +32,6 @@ export async function POST(request: NextRequest) {
                 customerEmail: customerInfo.email,
                 customerPhone: customerInfo.phone,
                 customerAddress: customerInfo.address,
-                cartItems: JSON.stringify(cartItems),
             },
         });
 
