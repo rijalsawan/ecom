@@ -7,6 +7,7 @@ import {
   ClerkProvider,
 } from '@clerk/nextjs'
 import Navbar from '@/components/Navbar';
+import { Analytics } from "@vercel/analytics/next"
 
 export const metadata: Metadata = {
   title: 'Ecom',
@@ -33,6 +34,7 @@ export default function RootLayout({
             <Navbar/>
           </header>
           {children}
+          <Analytics />
         </body>
       </html>
     </ClerkProvider>
